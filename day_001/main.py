@@ -49,20 +49,6 @@ def run_agent(env: gym.Env, agent: Agent, n_runs=200, base_seed=1):
     return (np.array(all_rewards), np.array(all_was_bests))
 
 
-# def run_episode(env: gym.Env, agent: Agent):
-#     rewards = []
-
-#     truncated = False
-    
-#     while not truncated:
-#         action = agent.get_action()
-#         obs, reward, truncated, info = env.step(action)
-#         agent.observe(action, reward, indo)
-#         rewards.append(reward)
-
-
-
-
 if __name__ == "__main__":
     num_arms = 10
     max_episode_steps = 2_000
@@ -103,7 +89,6 @@ if __name__ == "__main__":
             print(f" -> Frequency of correct arm: {corrects.mean():.4f}")
             print(f" -> Average reward: {rewards.mean():.4f}")
 
-    # names = ["Random Agent"]
     plot_rewards(all_rewards, names)
 
     
