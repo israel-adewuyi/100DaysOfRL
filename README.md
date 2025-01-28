@@ -14,3 +14,9 @@ Main reference code : [ARENA RL chapter](https://github.com/callummcdougall/AREN
 - `day_001/utils.py` and `day_001/main.py` were shamelessly copied from the reference code above, with some slight modifications.
 
 ---
+# Day 2
+- Continued work on the Multi-arm bandit problem from Chapter 2 of the Sutton book.
+- Implemented the upper confidence bound selection and compared with an agent that always chooses the best action, sort of a cheating agent. 
+![reward averaging results](/day_002/artefacts/average_rewards.png)
+- `day_002/agent.py` -Implementation of the Upper Confidenc Bound action selection agent and the cheating agent
+- `day_002/main.py` - code to run the agents and compare with the epsilon-greedy agent and the random agent

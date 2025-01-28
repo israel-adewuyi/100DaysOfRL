@@ -25,7 +25,7 @@ def plot_rewards(
         if moving_avg_window is not None:
             rewards_avg = moving_avg(rewards_avg, moving_avg_window)
         fig.add_trace(go.Scatter(y=rewards_avg, mode="lines", name=name))
-        fig.update_layout(height=450, width=750).show(config=CONFIG)
+        fig.update_layout(height=500, width=900).show(config=CONFIG)
     
     fig.write_image(filename)
     print("Average rewards written to file")
