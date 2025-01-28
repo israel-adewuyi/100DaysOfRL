@@ -14,7 +14,8 @@ def moving_avg(a, n):
 def plot_rewards(
     all_rewards: List[np.ndarray],
     names: List[str],
-    moving_avg_window: Union[int, None] = 15
+    filename: str,
+    moving_avg_window: Union[int, None] = 15,
 ):
     names = [name.replace(", ", "<br>  │").replace("(", "<br>  │").replace(")", "") for name in names]
 
@@ -26,5 +27,5 @@ def plot_rewards(
         fig.add_trace(go.Scatter(y=rewards_avg, mode="lines", name=name))
         fig.update_layout(height=450, width=750).show(config=CONFIG)
     
-    fig.write_image('artefacts/average_rewards.png')
+    fig.write_image(filename)
     print("Average rewards written to file")
