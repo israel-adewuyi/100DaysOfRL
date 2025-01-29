@@ -20,3 +20,12 @@ Main reference code : [ARENA RL chapter](https://github.com/callummcdougall/AREN
 ![reward averaging results](/day_002/artefacts/average_rewards.png)
 - `day_002/agent.py` -Implementation of the Upper Confidenc Bound action selection agent and the cheating agent
 - `day_002/main.py` - code to run the agents and compare with the epsilon-greedy agent and the random agent
+
+---
+# Day 3
+- Implemented `Policy Iteration` from Chapter 4 of the Sutton book to find the optimal policy for the gridworld environment.
+- ![optimal policy](/day_003/optimal_policy.png)
+- `day_003/policy_iteration.py` - Implementation of the policy evaluation with state-value function and greedy policy improvement
+- `day_003/environment.py` and `day_003/gridworld.py` were shamelessly copied from the reference code base above.
+
+--- 
