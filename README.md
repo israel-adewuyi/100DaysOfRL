@@ -29,3 +29,9 @@ Main reference code : [ARENA RL chapter](https://github.com/callummcdougall/AREN
 - `day_003/environment.py` and `day_003/gridworld.py` were shamelessly copied from the reference code base above.
 
 --- 
+# Day 4
+- Implemented `Value Iteration` from Chapter 4 of the Sutton book to find the optimal policy for a 5 by 5 gridworld environment
+- ![optimal policy](/day_004/optimal_policy.png)
+- `day_004/value_iteration.py` - Implementation for the value iteration to find the optimal policy
+
+---
