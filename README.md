@@ -35,3 +35,9 @@ Main reference code : [ARENA RL chapter](https://github.com/callummcdougall/AREN
 - `day_004/value_iteration.py` - Implementation for the value iteration to find the optimal policy
 
 ---
+# Day 5
+- Started to implement Chapter 6, section 4 from the Sutton Book : SARSA On-Policy TD Control
+- Couldn't get it to work, but I'll debug and try to fix tomorrow
+- `day_005/SARSA.py` - Current implementation for SARSA
+
+---
