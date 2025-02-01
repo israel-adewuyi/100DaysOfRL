@@ -1,62 +1,36 @@
 import numpy as np
+import gymnasium as gym
+
+from tqdm import trange
+from typing import Union, Tuple, List
+from dataclasses import dataclass
+from .utils import sum_rewards
 
 Arr = np.ndarray
 ObsType = int
 ActType = int
 
-class Norvig(Environment):
-    def dynamics(self, state: int, action: int) -> tuple[Arr, Arr, Arr]:
-        def state_index(state):
-            assert 0 <= state[0] < self.width and 0 <= state[1] < self.height, print(state)
-            pos = state[0] + state[1] * self.width
-            assert 0 <= pos < self.num_states, print(state, pos)
-            return pos
+@dataclass
+class Experience:
+    """
+    A class for storing one piece of experience during an episode run.
+    """
 
-        pos = self.states[state]
-        if state in self.terminal or state in self.walls:
-            return (np.array([state]), np.array([0]), np.array([1]))
-        out_probs = np.zeros(self.num_actions) + 0.1
-        out_probs[action] = 0.7
-        out_states = np.zeros(self.num_actions, dtype=int) + self.num_actions
-        out_rewards = np.zeros(self.num_actions) + self.penalty
-        new_states = [pos + x for x in self.actions]
-        for i, s_new in enumerate(new_states):
-            if not (0 <= s_new[0] < self.width and 0 <= s_new[1] < self.height):
-                out_states[i] = state
-                continue
-            new_state = state_index(s_new)
-            if new_state in self.walls:
-                out_states[i] = state
-            else:
-                out_states[i] = new_state
-            for idx in range(len(self.terminal)):
-                if new_state == self.terminal[idx]:
-                    out_rewards[i] = self.goal_rewards[idx]
-        return (out_states, out_rewards, out_probs)
+    obs: ObsType
+    act: ActType
+    reward: float
+    new_obs: ObsType
+    # new_act: ActType | None = None
+    new_act: Union[ActType, None] = None
 
-    def render(self, pi: Arr):
-        assert len(pi) == self.num_states
-        emoji = ["⬆️", "➡️", "⬇️", "⬅️"]
-        grid = [emoji[act] for act in pi]
-        grid[3] = "🟩"
-        grid[7] = "🟥"
-        grid[5] = "⬛"
-        print("".join(grid[0:4]) + "\n" + "".join(grid[4:8]) + "\n" + "".join(grid[8:]))
 
-    def __init__(self, penalty=-0.04):
-        self.height = 3
-        self.width = 4
-        self.penalty = penalty
-        num_states = self.height * self.width
-        num_actions = 4
-        self.states = np.array([[x, y] for y in range(self.height) for x in range(self.width)])
-        self.actions = np.array([[0, -1], [1, 0], [0, 1], [-1, 0]])
-        self.dim = (self.height, self.width)
-        terminal = np.array([3, 7], dtype=int)
-        self.walls = np.array([5], dtype=int)
-        self.goal_rewards = np.array([1.0, -1])
-        super().__init__(num_states, num_actions, start=8, terminal=terminal)
+@dataclass
+class AgentConfig:
+    """Hyperparameters for agents"""
 
+    epsilon: float = 0.1
+    lr: float = 0.05
+    optimism: float = 0
 
 class Environment:
     def __init__(self, num_states: int, num_actions: int, start=0, terminal=None):
@@ -86,7 +60,7 @@ class Environment:
                 R[s, a, all_s] = all_r
         return (T, R)
 
-    def dynamics(self, state: int, action: int) -> tuple[Arr, Arr, Arr]:
+    def dynamics(self, state: int, action: int) -> Tuple[Arr, Arr, Arr]:
         """
         Computes the distribution over possible outcomes for a given state
         and action.
@@ -158,7 +132,7 @@ class DiscreteEnviroGym(gym.Env):
         self.action_space = gym.spaces.Discrete(env.num_actions)
         self.reset()
 
-    def step(self, action: ActType) -> tuple[ObsType, float, bool, dict]:
+    def step(self, action: ActType) -> Tuple[ObsType, float, bool, dict]:
         '''
         Execute an action and return the new state, reward, done flag, and additional info.
         The behaviour of this function depends primarily on the dynamics of the underlying
@@ -168,16 +142,107 @@ class DiscreteEnviroGym(gym.Env):
         idx = self.np_random.choice(len(states), p=probs)
         (new_state, reward) = (states[idx], rewards[idx])
         self.pos = new_state
-        done = self.pos in self.env.terminal
-        return (new_state, reward, done, {"env": self.env})
+        truncated = False
+        terminated = self.pos in self.env.terminal
+        return (new_state, reward, truncated, terminated, {"env": self.env})
 
-    def reset(self, seed: int | None = None, options=None) -> ObsType:
+    def reset(self, seed: Union[int, None] = None, options=None) -> ObsType:
         '''
         Resets the environment to its initial state.
         '''
         super().reset(seed=seed)
         self.pos = self.env.start
-        return self.pos
+        return self.pos, {}
 
     def render(self, mode="human"):
         assert mode == "human", f"Mode {mode} not supported!"
+
+
+defaultConfig = AgentConfig()
+
+
+class Agent:
+    """Base class for agents interacting with an environment (you do not need to add any implementation here)"""
+
+    rng: np.random.Generator
+
+    def __init__(self, env: DiscreteEnviroGym, config: AgentConfig = defaultConfig, gamma: float = 0.99, seed: int = 0):
+        self.env = env
+        self.reset(seed)
+        self.config = config
+        self.gamma = gamma
+        self.num_actions = env.action_space.n
+        self.num_states = env.observation_space.n
+        self.name = type(self).__name__
+
+    def get_action(self, obs: ObsType) -> ActType:
+        raise NotImplementedError()
+
+    def observe(self, exp: Experience) -> None:
+        """
+        Agent observes experience, and updates model as appropriate.
+        Implementation depends on type of agent.
+        """
+        pass
+
+    def reset(self, seed: int) -> Tuple[ObsType, dict]:
+        self.rng = np.random.default_rng(seed)
+        return None, {}
+
+    def run_episode(self, seed) -> List[int]:
+        """
+        Simulates one episode of interaction, agent learns as appropriate
+        Inputs:
+            seed : Seed for the random number generator
+        Outputs:
+            The rewards obtained during the episode
+        """
+        # raise NotImplementedError()
+        rewards = []
+        obs, info = self.env.reset(seed=seed)
+        self.reset(seed=seed)
+        done = False
+        while not done:
+            act = self.get_action(obs)
+            new_obs, reward, terminated, truncated, info = self.env.step(act)
+            done = terminated or truncated
+            exp = Experience(obs, act, reward, new_obs)
+            self.observe(exp)
+            rewards.append(reward)
+            obs = new_obs
+        return rewards
+
+    def train(self, n_runs=500):
+        """
+        Run a batch of episodes, and return the total reward obtained per episode
+        Inputs:
+            n_runs : The number of episodes to simulate
+        Outputs:
+            The discounted sum of rewards obtained for each episode
+        """
+        all_rewards = []
+        for seed in trange(n_runs):
+            rewards = self.run_episode(seed)
+            all_rewards.append(sum_rewards(rewards, self.gamma))
+        return all_rewards
+
+        
+
+
+class EpsilonGreedy(Agent):
+    """
+    A class for SARSA and Q-Learning to inherit from.
+    """
+
+    def __init__(self, env: DiscreteEnviroGym, config: AgentConfig = defaultConfig, gamma: float = 0.99, seed: int = 0):
+        super().__init__(env, config, gamma, seed)
+        self.Q = np.zeros((self.num_states, self.num_actions)) + self.config.optimism
+
+    def get_action(self, obs: ObsType) -> ActType:
+        """
+        Selects an action using epsilon-greedy with respect to Q-value estimates
+        """
+        if self.rng.random() < self.config.epsilon:
+            return self.rng.integers(0, self.num_actions)
+        else:
+            return self.Q[obs].argmax()
