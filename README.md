@@ -41,3 +41,9 @@ Main reference code : [ARENA RL chapter](https://github.com/callummcdougall/AREN
 - `day_005/SARSA.py` - Current implementation for SARSA
 
 ---
+# Day 6
+- Implemented SARSA and Q-learning and compared to a random agent baseline
+- ![avg rewards](/day_006/avg_rewards.png)
+- `day_006/agents.py` - Implementation of SARSA, QLearning and Random agents.
+
+---
