@@ -47,3 +47,6 @@ Main reference code : [ARENA RL chapter](https://github.com/callummcdougall/AREN
 - `day_006/agents.py` - Implementation of SARSA, QLearning and Random agents.
 
 ---
+# Day 7
+- Started reading the [Atari paper](https://www.cs.toronto.edu/~vmnih/docs/dqn.pdf) and I plan to implement this paper over the next few days.
+- No coding / implementation for today
