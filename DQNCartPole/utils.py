@@ -15,7 +15,7 @@ def epsilon_greedy_action_selection(obs: np.ndarray,
                                     epsilon: float, 
                                     rng: np.random.Generator
 )-> np.ndarray:
-    obs = torch.from_numpy(obs).to("cuda:2")
+    obs = torch.from_numpy(obs).to("cuda:3")
     num_actions = envs.single_action_space.n
     num_envs = obs.shape[0]
     

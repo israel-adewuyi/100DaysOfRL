@@ -3,6 +3,7 @@ import numpy as np
 
 from torch import Tensor
 from typing import Tuple
+from dataclasses import dataclass
 from jaxtyping import Float, Int, Bool
 """
     We want to store experiences here. 
@@ -15,7 +16,7 @@ from jaxtyping import Float, Int, Bool
     Env -> observation, agent -> action, env -> reward_t+1, obs_t+1. 
     Some other class collects (obs, actin, reward_t+1, obs_t+1) into a BufferSample and calls add. Does this make sense? 
 """
-
+@dataclass
 class BufferSamples:
     """
         IDK yet. 
@@ -87,9 +88,9 @@ class Buffer:
         """
         indices = self.rng.integers(0, self.buffer_size, sample_size)
 
-        return ReplayBufferSamples(
+        return BufferSamples(
             *[
-                t.tensor(x[indices], device=device)
+                torch.tensor(x[indices], device=device)
                 for x in [self.obs, self.actions, self.rewards, self.terminated, self.next_obs]
             ]
         )
